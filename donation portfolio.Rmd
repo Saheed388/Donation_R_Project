@@ -1,0 +1,608 @@
+---
+title: "donations project"
+author: "saheed"
+date: "2022-12-01"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(data.table)
+library(ggplot2)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+ - How many donors we have in existing database? 
+ 
+```{r}
+dd<-donation_data_nw
+drd<-donor_data_new
+dim(dd)
+dim(drd)
+```
+
+ COUNT OF MALE DONOR
+```{r}
+sum(with(dd,gender == "Male"))
+
+
+```
+COUNT OF FEMALE DORNO
+```{r}
+sum(with(dd,gender == "Female"))
+
+```
+COUNT OF ALL DONOR
+```{r}
+length(dd$last_name)
+```
+Total donations
+```{r}
+  sum(dd$donations
+      )
+```
+Total donation by each gender
+```{r}
+DBYEACHG <- dd %>% 
+ group_by(gender) %>% 
+ summarise( Total_donation_by_each_gender
+= sum(donations))
+
+```
+Total amount donated by each job field
+```{r}
+total_job_field <- 
+dd%>%
+  group_by(job_field)%>%
+  summarise(donation_by_each_job_field= sum(donations)
+) %>%
+  arrange(desc(donation_by_each_job_field))
+```
+
+
+ggrepel.... was used
+
+```{r}
+library(ggrepel)
+
+pie <- ggplot(total_job_field, aes( x= "", y ="donation_by_each_job_field", fill = job_field))+
+  geom_col(color ='black')+
+  coord_polar("y", start = 0)+
+  geom_text(aes(label = paste0(round(donation_by_each_job_field*100), "%")), 
+         position = position_stack(vjust =0.5))+
+ # theme(legend.position = "none")+
+  theme(panel.background = element_blank(),
+        axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+  plot.title = element_text(hjust = 0.5, size = 18))+
+  ggtitle("Job firld donations(ggplot2)")+
+  #geom_label_repel(aes(label = donation_by_each_job_field), size=2, show.legend = F, nudge_x = 4, box.padding = 0.25, label.padding = 0.25) +
+       scale_fill_manual(values = colors)
+       
+pie
+```
+
+
+
+
+```{r}
+pie<-ggplot(total_job_field) +
+  aes(
+    x = job_field,
+    y = donation_by_each_job_field,
+    fill = job_field
+  ) +
+  geom_col() +
+  scale_fill_manual(
+    values = c(Accounting = "#F8766D",
+    `Business Development` = "#DD8A1D",
+    Engineering = "#B59C00",
+    `Human Resources` = "#78AC0A",
+    Legal = "#0DB832",
+    Marketing = "#00BE79",
+    `Product Management` = "#00BEB7",
+    `Research and Development` = "#08B6E5",
+    Sales = "#4FA1F9",
+    Services = "#A385FC",
+    Support = "#E46DEB",
+    Training = "#FF61C3")
+  ) +
+  theme_minimal()
+pie
+  
+```
+
+
+
+
+
+
+
+AMOUNT DONATED BY EACH GENDER AND THEIR  JOB FIELD
+
+```{r}
+gender_job_field_donations <-dd%>%
+  group_by(job_field,gender)%>%
+  summarise(donation_by_each_job_field= sum(donations)
+) %>%
+  arrange(desc(job_field))
+```
+TOP 10 DORNOR
+
+```{r}
+TOP10<-
+dd%>%
+  arrange(desc(donations))%>%
+  slice(1:10)
+```
+LOWEST 10 DORNO
+
+
+```{r}
+dd%>%
+  arrange(donations)%>%
+  slice(1:10)
+```
+TOP 10 MALE and FEMALE DORNO
+```{r}
+TOP10_MALE_and_FEMALE_DORN<-
+dd%>%
+  arrange(desc(donations))%>%
+  group_by(gender)%>%
+  slice(1:10)
+```
+
+SUM OF DONATION FROM EACH STATE
+```{r}
+dd%>%
+  group_by(state)%>%
+  summarise(donation_by_each_job_field= sum(donations)
+) %>%
+  arrange(desc(donation_by_each_job_field))
+```
+TOP 10 STATE WITH HIGEST DORNO
+```{r}
+#state_donor=
+dd%>%
+  group_by(state)%>%
+  summarise(state_donation= sum(donations)
+) %>%
+  arrange(desc(state_donation))%>%
+  slice(1:10)
+```
+
+```{r}
+
+ dd%>%
+  group_by(state,gender)%>%
+  summarise(state_donation= sum(donations)
+) %>%
+  arrange(desc(state_donation))%>%
+  slice(1:10)
+```
+
+```{r}
+library(openxlsx)
+library(rio)
+export(state_donation, 'state_donations.xlsx')
+
+```
+
+```{r}
+export(state_donation, 'state_donations.xlsx')
+
+```
+
+
+AVERAGE DONATIONS FROM EACH GENDER
+```{r}
+dd%>%
+  group_by(gender)%>%
+  summarise(average_donation = mean(donations))
+```
+To find sum and count of donation from all state , I used  SUM, COUNT, WHERE, GROUP BY, AS:
+
+
+
+```{r}
+count_and_total_donation_country<-dd%>%
+  group_by(state)%>%
+  summarise(count = n_distinct(donations),sum(donations))%>%
+  arrange(desc(count))
+
+```
+
+To find sum and count of donation from all state , I used  SUM, COUNT, WHERE, GROUP BY, AS:
+
+
+```{r}
+count_and_total_donation_jobfield<-dd%>%
+  group_by(job_field)%>%
+  summarise(count = n_distinct(donations),sum_donation =sum(donations))%>%
+  arrange(desc(sum_donation))
+
+```
+
+The count of donor from each job field and sum of donation by donation frequeency
+
+
+```{r}
+donorinerj <-inner_join(dd, drd, by = "id")
+
+view(donorinerj)
+dim(donorinerj)
+```
+
+SUM OF DONATION IN EACH DEPARTMENT BY DONATION FREQUENCIES
+```{r}
+donorinerj%>%
+  group_by(job_field, donation_frequency)%>%
+  summarise(count = n_distinct(donations),sum_donation =sum(donations))#%>%
+  #arrange(desc(sum_donation))
+
+```
+List of female donor that donate above 450 without university
+
+```{r}
+donorinerj%>%
+  select(gender, donations, university)%>%
+  filter( gender == 'Female',donations >450, university == 'null')%>%
+  arrange(desc(donations))
+```
+Top 10 university dorno
+
+```{r}
+Top10_university_dorno <-
+donorinerj%>%
+  select( fisst_name, last_name,gender,donations,donation_frequency,job_field, university)%>%
+  arrange(desc(donations))%>%
+  slice(1:10)
+```
+
+
+
+List of male donor that donate above 450 without university
+
+```{r}
+donorinerj%>%
+  select(gender, donations, university)%>%
+  filter( gender == 'Male',donations >450, university == 'null')%>%
+  arrange(desc(donations))
+
+```
+
+
+COUNT OF MALE DONOR FROM EACH DEPARTMENT
+```{r}
+#male_count<-
+donorinerj%>%
+  group_by(job_field, gender)%>%
+  summarise(count = n_distinct(donations))%>%
+  filter(gender == 'Male')%>%
+  arrange(desc(count))
+```
+
+
+
+```{r}
+male_count$job_field <- factor(male_count$job_field)%>%
+  fct_reorder(male_count$count)
+
+
+ggplot(male_count) +
+  aes(x = job_field, y = count, fill = job_field) +
+  geom_col() +
+  scale_fill_hue(direction = 1) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none")+
+    geom_text(aes(label = signif(count)), nudge_y = 1, color = 'blue', size = 2)
+
+```
+
+COUNT OF FEMALE DONOR FROM EACH DEPARTMENT
+```{r}
+female_count$job_field <- factor(female_count$job_field)%>%
+  fct_reorder(female_count$count)
+
+
+#female_count<-
+donorinerj%>%
+  group_by(job_field, gender)%>%
+  summarise(count = n_distinct(donations))%>%
+  filter(gender == 'Female')%>%
+  arrange(desc(count))
+```
+
+
+```{r}
+
+female_count$job_field <- factor(female_count$job_field)%>%
+  fct_reorder(female_count$count)
+
+ggplot(female_count) +
+  aes(x = job_field, y = count, fill = job_field) +
+  geom_col() +
+  scale_fill_manual(
+    values = c(Accounting = "#F8766D",
+    `Business Development` = "#DD8A1D",
+    Engineering = "#B59C00",
+    `Human Resources` = "#78AC0A",
+    Legal = "#0DB832",
+    Marketing = "#00BE79",
+    `Product Management` = "#00BEB7",
+    `Research and Development` = "#08B6E5",
+    Sales = "#4FA1F9",
+    Services = "#A385FC",
+    Support = "#E46DEB",
+    Training = "#FF61C3")
+  ) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none")+
+   geom_text(aes(label = signif(count)), nudge_y = 1, color = 'blue', size = 2)
+
+```
+
+
+
+
+
+FEMALE WITHOUT CAR AND UNIVERSITY THAT DONATED MORE THAN $400
+```{r}
+female_without_car_and_uni <-donorinerj%>%
+  select(fisst_name, last_name, state, job_field,gender, donations,donation_frequency, university,cars)%>%
+  filter( gender == 'Female',donations >450, university == 'null',cars=='null')%>%
+  arrange(desc(donations))
+```
+
+FEMALE WITHOUT CAR AND UNIVERSITY THAT DONATED MORE THAN $400
+```{r}
+male_without_car_and_uni<-donorinerj%>%
+  select(fisst_name, last_name, state, job_field,gender, donations,donation_frequency, university,cars)%>%
+  filter( gender == 'Male',donations >450, university == 'null',cars=='null')%>%
+  arrange(desc(donations))
+
+```
+
+4 MALE DORNO WITHOUT CARS
+```{r}
+donorinerj%>%
+  select(gender, donations,cars)%>%
+  filter( gender == 'Male',donations >450,cars=='null')%>%
+  arrange(desc(donations))
+```
+FEMALE DORNO WITHOUT CARS
+
+```{r}
+donorinerj%>%
+  select(last_name ,fisst_name,gender, donations,cars,email )%>%
+  filter( gender == 'Female',cars=='null')%>%
+  arrange(desc(donations))
+
+```
+
+
+```{r}
+leftjoin <- left_join(dd, drd, by = "id")
+
+```
+
+MALE DORNO WITHOUT CARS
+
+```{r}
+donorinerj%>%
+  select(gender, donations,cars)%>%
+  filter( gender == 'Male',cars=='null')%>%
+  arrange(desc(donations))
+```
+THE SUM OF DONATIONS MADE ONCE BY FEMALE IN RELATED TO THEIR
+JOBS
+```{r}
+donorinerj%>%
+  select(gender, donations,donation_frequency,job_field)%>%
+  filter( gender == 'Male', donation_frequency == 'Once')%>%
+  summarise(sum_donation = sum(donations))
+```
+FEMALE
+```{r}
+donorinerj%>%
+  select(gender, donations,donation_frequency,job_field)%>%
+  filter( gender == 'Female', donation_frequency == 'Once')%>%
+  summarise(sum_donation = sum(donations))
+```
+
+sum Male/Weekly
+
+```{r}
+donorinerj%>%
+  select(gender, donations,donation_frequency,job_field)%>%
+  filter( gender == 'Male', donation_frequency == 'Weekly')%>%
+  summarise(sum_donation = sum(donations))
+```
+sum Female/weekly
+```{r}
+donorinerj%>%
+  select(gender, donations,donation_frequency,job_field)%>%
+  filter( gender == 'Female', donation_frequency == 'Weekly')%>%
+  summarise(sum_donation = sum(donations))
+```
+sum Male/monthly
+```{r}
+donorinerj%>%
+  select(gender, donations,donation_frequency,job_field)%>%
+  filter( gender == 'Male', donation_frequency == 'Monthly')%>%
+  summarise(sum_donation = sum(donations))
+```
+Sum Female/Monthly
+```{r}
+donorinerj%>%
+  select(gender, donations,donation_frequency,job_field)%>%
+  filter( gender == 'Female', donation_frequency == 'Monthly')%>%
+  summarise(sum_donation = sum(donations))
+```
+
+Sum Male/Yearly
+```{r}
+donorinerj%>%
+  select(gender, donations,donation_frequency,job_field)%>%
+  filter( gender == 'Male', donation_frequency == 'Yearly')%>%
+  summarise(sum_donation = sum(donations))
+```
+
+sum Female/Yearly
+```{r}
+donorinerj%>%
+  select(gender, donations,donation_frequency,job_field)%>%
+  filter( gender == 'Female', donation_frequency == 'Yearly')%>%
+  summarise(sum_donation = sum(donations))
+```
+
+THE SUM OF DONATIONS MADE YEAR BY FEMALE IN EACH STATE IN RELATED TO THEIR
+JOBS
+
+```{r}
+donorinerj%>%
+  group_by(state, donation_frequency,gender, job_field)%>%
+  filter(donation_frequency=='Yearly', gender=='Female')%>%
+  summarise(count = n_distinct(donations),sum_donation =sum(donations))%>%
+  arrange(desc(sum_donation))
+```
+THE SUM OF DONATIONS MADE YEAR BY FEMALE IN EACH STATE IN RELATED TO THEIR
+JOBS
+```{r}
+donorinerj%>%
+  group_by(state, donation_frequency,gender, job_field)%>%
+  filter(donation_frequency=='Yearly', gender=='Male')%>%
+  summarise(count = n_distinct(donations),sum_donation =sum(donations))%>%
+  arrange(desc(sum_donation))
+```
+THE SUM OF DONATIONS MADE YEAR BY FEMALE IN EACH STATE IN RELATED TO THEIR
+JOBS
+
+```{r}
+donorinerj%>%
+  group_by(state, donation_frequency,gender, job_field)%>%
+  filter(donation_frequency=='Monthly', gender=='Female')%>%
+  summarise(count = n_distinct(donations),sum_donation =sum(donations))%>%
+  arrange(desc(sum_donation))
+
+
+```
+
+MALE/MONTHLY
+```{r}
+donorinerj%>%
+  group_by(state, donation_frequency,gender, job_field)%>%
+  filter(donation_frequency=='Monthly', gender=='Male')%>%
+  summarise(count = n_distinct(donations),sum_donation =sum(donations))%>%
+  arrange(desc(sum_donation))
+
+
+```
+
+
+```{r}
+esquisser(viewer = "browser")
+```
+```{r}
+ggThemeAssist(viewer= 'browser')
+```
+
+
+
+PLOT TOP 10 STATE BY DONATION
+
+```{r}
+state_donor$state <- factor(state_donor$state)%>%
+  fct_reorder(state_donor$state_donation)
+
+ggplot(state_donor) +
+  aes(x = state, y = state_donation, fill = state) +
+  geom_col() +
+  scale_fill_manual(
+    values = c(Ohio = "#A50026",
+    Georgia = "#DA362A",
+    Tennessee = "#F67B49",
+    `District of Columbia` = "#FDBE6E",
+    Illinois = "#FEEDA2",
+    Virginia = "#E9F6A2",
+    `New York` = "#B7E075",
+    Florida = "#74C364",
+    Texas = "#229C52",
+    California = "#006837")
+  ) +
+  labs(title = "TOP 10 STATE BY DONATIONS", color = 'blue') +
+  coord_flip() +
+  theme(legend.position = "none")+
+  theme_minimal()+
+  geom_text(aes(label = signif(state_donation)), nudge_y = 1, color = 'blue', size = 2)
+
+
+```
+
+
+
+```{r}
+ ggplot(donorinerj) +
+  aes(
+    x = donation_frequency,
+    fill = gender,
+    group = gender,
+    weight = donations
+  ) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(
+    values = c(Female = "#8E0152",
+    Male = "#276419")
+  ) +
+  labs(title = "DONATIONS BY GENDER/DONATION FREQUENCIES") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 10L, face = "bold"))
+  #geom_text(aes(label = signif(count)), nudge_y = 1, color = 'blue', size = 2)
+
+```
+
+
+
+
+  
+  
+```{r}
+gender =c('Female','Male')
+total_donation=c(121457 ,127628)
+pie(x=total_donation, labels = total_donation, radius = 1, col = c('pink','blue'))
+
+```
+
+
+  
+
+
+
+
+
+```{r}
+export(count_and_total_donation_jobfield, 'count_and_total_donation_jobfield_country.xlsx')
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
